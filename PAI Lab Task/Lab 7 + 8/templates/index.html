@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipe Finder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">🍲 Recipe Finder</h1>
+        <form method="POST" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="query" class="form-control" placeholder="Search by ingredient or meal name..." value="{{ query }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+
+        {% if recipes %}
+        <div class="row">
+            {% for recipe in recipes %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <img src="{{ recipe.strMealThumb }}" class="card-img-top" alt="{{ recipe.strMeal }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ recipe.strMeal }}</h5>
+                        <p><strong>Category:</strong> {{ recipe.strCategory }}</p>
+                        <p><strong>Area:</strong> {{ recipe.strArea }}</p>
+                        <a href="{{ recipe.strSource or recipe.strYoutube }}" target="_blank" class="btn btn-outline-success btn-sm">View Recipe</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif query %}
+        <p class="text-danger">No recipes found for "{{ query }}". Try something else.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Medical Chatbot</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #5ee7df, #b490ca);
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .chat-container {
+      background-color: #ffffff;
+      border-radius: 20px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-header {
+      background-image: linear-gradient(315deg, #6a11cb 0%, #2575fc 74%);
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+    .messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .user-msg, .bot-msg {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      line-height: 1.4;
+      font-size: 0.95em;
+    }
+    .user-msg {
+      align-self: flex-end;
+      background-color: #daf8e3;
+    }
+    .bot-msg {
+      align-self: flex-start;
+      background-color: #f1f0f0;
+    }
+    form {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 20px;
+      background-color: #f0f0f0;
+      font-size: 1em;
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      background-color: #2575fc;
+      border: none;
+      border-radius: 20px;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1a5cd8;
+    }
+    .clear-btn {
+      background-color: #f44336;
+      margin: 10px;
+      font-size: 0.9em;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+    }
+    .clear-btn:hover {
+      background-color: #d32f2f;
+    }
+    .mic-btn {
+      background-color: #ff9800;
+      padding: 10px;
+      border-radius: 50%;
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .mic-btn:hover {
+      background-color: #f57c00;
+    }
+    .typing-indicator {
+      display: none;
+      margin-top: 10px;
+      font-size: 1.1em;
+      color: #999;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">💬 Medical Center Bot</div>
+    <div class="messages" id="chat-box"></div>
+    <div class="typing-indicator" id="typing-indicator">Bot is typing...</div>
+    <form id="chat-form">
+      <input type="text" id="user-input" placeholder="Type your question..." required autocomplete="off">
+      <button type="submit">Send</button>
+      <button type="button" class="mic-btn" onclick="startDictation()">🎤</button>
+    </form>
+    <button class="clear-btn" id="clear-btn">Clear Chat</button>
+  </div>
+
+  <script>
+    const form = document.getElementById("chat-form");
+    const input = document.getElementById("user-input");
+    const chatBox = document.getElementById("chat-box");
+    const typingIndicator = document.getElementById("typing-indicator");
+
+    document.getElementById("clear-btn").addEventListener("click", () => {
+      chatBox.innerHTML = "";
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+
+      chatBox.innerHTML += `<div class="user-msg">You: ${userMsg}</div>`;
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+      typingIndicator.style.display = "block";
+
+      setTimeout(() => {
+        fetch("/get", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: `msg=${encodeURIComponent(userMsg)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          typingIndicator.style.display = "none";
+          chatBox.innerHTML += `<div class="bot-msg">Bot: ${data.response}</div>`;
+          chatBox.scrollTop = chatBox.scrollHeight;
+        });
+      }, 1000);
+    });
+
+    function startDictation() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.start();
+
+      recognition.onresult = (event) => {
+        const userMsg = event.results[0][0].transcript;
+        input.value = userMsg;
+        form.dispatchEvent(new Event("submit"));
+      };
+    }
+  </script>
+</body>
+</html>
+
